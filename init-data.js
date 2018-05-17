@@ -12,7 +12,7 @@
 
 const co = require('co');
 
-const models = require('@va/models');
+const models = require('va-online-memorial-data-models');
 const logger = require('./common/logger');
 const helper = require('./modules/security/helper');
 

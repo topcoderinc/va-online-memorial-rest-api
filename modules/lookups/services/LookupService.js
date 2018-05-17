@@ -20,7 +20,7 @@ const {
   BadgeType,
   EventType,
   Campaign
-} = require('@va/models');
+} = require('va-online-memorial-data-models');
 
 // Pagination schema
 const paginationSchema = {

@@ -11,7 +11,7 @@ const _ = require('lodash');
 const co = require('co');
 const errors = require('./errors');
 const util = require('util');
-const models = require('@va/models');
+const models = require('va-online-memorial-data-models');
 const path = require('path');
 const fs = require('fs-extra');
 

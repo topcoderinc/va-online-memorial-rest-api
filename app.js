@@ -22,7 +22,7 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const logger = require('./common/logger');
 const _ = require('lodash');
-const { syncDB } = require('@va/models');
+const { syncDB } = require('va-online-memorial-data-models');
 const path = require('path');
 
 syncDB();

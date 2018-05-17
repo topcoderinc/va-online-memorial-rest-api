@@ -9,7 +9,7 @@
  */
 const Joi = require('joi');
 const _ = require('lodash');
-const models = require('@va/models');
+const models = require('va-online-memorial-data-models');
 const logger = require('../../../common/logger');
 const helper = require('../../../common/helper');
 

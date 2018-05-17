@@ -11,7 +11,7 @@
 const constants = require('../../constants');
 
 const jwtAuth = constants.Passports.jwt;
-const { modelConstants } = require('@va/models');
+const { modelConstants } = require('va-online-memorial-data-models');
 
 module.exports = {
   '/nextOfKins': {

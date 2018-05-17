@@ -14,7 +14,7 @@ const helper = require('../../../common/helper');
 const {
   User,
   modelConstants
-} = require('@va/models');
+} = require('va-online-memorial-data-models');
 const {
   ConflictError,
   UnauthorizedError,
