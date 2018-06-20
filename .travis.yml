@@ -1,0 +1,11 @@
+deploy:
+  provider: cloudfoundry
+  api: https://api.fr.cloud.gov
+  username: dweaver@topcoder.com
+  password:
+    secure: P41anH/oxcf+Btxb3Rt74Be793D/duJn5HBHPIG/XKlmrDJ6c5l0t3MXIa/bYB9WYrRuGuq4Y0p+WnFOX7wjCzIGiCBOYvTUjfjK3acoLXaXXKSHmw1gP4OoxiDKI+ozNGktd4exq6tPXpgS5yitmU0gUZVeBYI7iaEwd8m8ZWHLi/tNN1ATPSCSvr46GQZx7bjCYsUzmAZ6rRHsG6bwfKbliEv/GcKOLGBdrHOMvVnH26lTVbZhmSszUuan29+thQpHRZjtbFjzJhTmOVEAk2zefWBXrtX2oMQai/Ay5ex01D/pLNR8Xhdr8jnJFgIp8rRaR2wKxVnFITM/BpekEbDZv/AWByY3MRXz94eH6Pz24V5n4n7HsG2Q3ItRINE+W4pd6lqNIQpuvZuLTFE9T7BfuJq10SUlz/PPXyqobW8SdmuyUeMh9fExPSIOfC9udHxZITEoAnz92lTY7ShYVO2JovHM3C6vtpDvnV2wWCBXR4IU4KGzKEdVRqsY7zLbKV7Kmw84IVPK0FpQ/Dt5AXN5C7yGwTte+nRKTRRoTwBwlJ3g97aLBh7Co6CzhBhR50cULt9qKy7a4XJGTji38tzadx52DxYLYUdaR+UdI8cqvcPsURJaNg7e86rPfuw9QFp8MB8P9fiU5fjMFCvma10+z1YND+lQmp9HuiJ7n08=
+  organization: sandbox-va
+  space: rest-api
+  on:
+    repo: topcoderinc/va-online-memorial-rest-api
+    branch: prototype
