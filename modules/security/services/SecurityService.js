@@ -77,6 +77,7 @@ function* login(credentials) {
   // Check if email is correct (registered)
   const user = yield User.findOne({ where: { email: credentials.email } });
   if (!user) throw new UnauthorizedError('Invalid credentials!');
+  if (user.status !== modelConstants.UserStatuses.Active) throw new UnauthorizedError('Account is not active.');
 
   // Check if password matches with the encrypted password
   const passwordMatch = yield comparePassword(credentials.password, user.passwordHash);
