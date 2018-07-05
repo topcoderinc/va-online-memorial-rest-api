@@ -74,8 +74,16 @@ register.schema = {
  * @param {object} credentials - The login credentials
  */
 function* login(credentials) {
-  // Check if email is correct (registered)
-  const user = yield User.findOne({ where: { email: credentials.email } });
+  let filter;
+
+  if (/@/.test(credentials.email)) {
+    filter = { where: { email: credentials.email } };
+  } else {
+    filter = { where: { username: credentials.email } };
+  }
+
+  const user = yield User.findOne(filter);
+
   if (!user) throw new UnauthorizedError('Invalid credentials!');
   if (user.status !== modelConstants.UserStatuses.Active) throw new UnauthorizedError('Account is not active.');
 
@@ -95,7 +103,7 @@ function* login(credentials) {
 
 login.schema = {
   credentials: Joi.object().keys({
-    email: Joi.string().email().required(),
+    email: Joi.string().required(),
     password: Joi.string().required()
   }).required()
 };
