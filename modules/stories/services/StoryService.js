@@ -118,6 +118,8 @@ function* getSingle(id) {
     ]
   });
   if (!story) throw new NotFoundError(`Story with id: ${id} does not exist!`);
+  story.viewCount = parseInt(story.viewCount, 10) + 1;
+  yield story.save();
   return yield helper.populateUsersForEntity(story);
 }
 
@@ -212,7 +214,7 @@ reject.schema = {
  * @param {Number} userId - the current user id
  */
 function* salute(id, userId) {
-  yield helper.ensureExists(models.Story, { id });
+  const story = yield helper.ensureExists(models.Story, { id });
 
   const s = yield models.PostSalute.findOne({
     where: {
@@ -222,6 +224,8 @@ function* salute(id, userId) {
     }
   });
   if (!s) {
+    story.saluteCount = parseInt(story.saluteCount, 10) + 1;
+    yield story.save();
     yield models.PostSalute.create({
       userId,
       postType: models.modelConstants.PostTypes.Story,
@@ -263,10 +267,11 @@ isSaluted.schema = {
  * @param {Number} id - the story id
  * @param {Number} userId - the current user id
  */
-function* share(id, userId) { // eslint-disable-line no-unused-vars
-  yield helper.ensureExists(models.Story, { id });
-  // it should increase the share count,
-  // but statistics is out of scope, so it does nothing at present
+function* share(id, userId) {
+  const story = yield helper.ensureExists(models.Story, { id });
+  story.shareCount = parseInt(story.shareCount, 10) + 1;
+  yield story.save();
+  return story;
 }
 
 share.schema = {

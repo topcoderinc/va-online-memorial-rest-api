@@ -128,6 +128,8 @@ function* getSingle(id) {
     ]
   });
   if (!photo) throw new NotFoundError(`Photo with id: ${id} does not exist!`);
+  photo.viewCount = parseInt(photo.viewCount, 10) + 1;
+  yield photo.save();
   return yield helper.populateUsersForEntity(photo);
 }
 
@@ -246,7 +248,7 @@ reject.schema = {
  * @param {Number} userId - the current user id
  */
 function* salute(id, userId) {
-  yield helper.ensureExists(models.Photo, { id });
+  const photo = yield helper.ensureExists(models.Photo, { id });
 
   const s = yield models.PostSalute.findOne({
     where: {
@@ -256,6 +258,8 @@ function* salute(id, userId) {
     }
   });
   if (!s) {
+    photo.saluteCount = parseInt(photo.saluteCount, 10) + 1;
+    yield photo.save();
     yield models.PostSalute.create({
       userId,
       postType: models.modelConstants.PostTypes.Photo,
@@ -297,10 +301,11 @@ isSaluted.schema = {
  * @param {Number} id - the photo id
  * @param {Number} userId - the current user id
  */
-function* share(id, userId) { // eslint-disable-line no-unused-vars
-  yield helper.ensureExists(models.Photo, { id });
-  // it should increase the share count,
-  // but statistics is out of scope, so it does nothing at present
+function* share(id, userId) {
+  const photo = yield helper.ensureExists(models.Photo, { id });
+  photo.shareCount = parseInt(photo.shareCount, 10) + 1;
+  yield photo.save();
+  return photo;
 }
 
 share.schema = {
