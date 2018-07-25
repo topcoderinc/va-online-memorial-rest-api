@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "va-online-memorial-data-models": "github:topcoderinc/va-online-memorial-data-models",
+    "va-online-memorial-data-models": "github:ramillim/va-online-memorial-data-models#add-salute-and-share-counts",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.18.2",
     "chalk": "^2.3.0",
@@ -48,5 +48,8 @@
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.5.1"
+  },
+  "eslintConfig": {
+    "extends": "airbnb"
   }
 }
