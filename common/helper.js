@@ -9,6 +9,7 @@
  */
 const _ = require('lodash');
 const co = require('co');
+const config = require('config');
 const errors = require('./errors');
 const util = require('util');
 const models = require('va-online-memorial-data-models');
@@ -56,6 +57,23 @@ function* removeFile(filename) {
   if (!filename) return;
   const filepath = path.join(__dirname, '../public/upload', filename);
   yield fs.remove(filepath);
+}
+
+function* uploadFile(file) {
+  console.log(config.appURL);
+
+  if (!file) return;
+  let fileMeta = {};
+  if (process.env.production) {
+    fileMeta = yield s3Client.uploadFile(file);
+  } else {
+    fileMeta = {
+      mimeType: file.mimetype,
+      name: file.filename,
+      url: `${config.appURL}/upload/${file.filename}`
+    }
+  }
+  return fileMeta;
 }
 
 /**
@@ -165,5 +183,6 @@ module.exports = {
   ensureEntitiesExist,
   canManageVeteran,
   populateUsersForEntity,
-  populateUsersForEntities
+  populateUsersForEntities,
+  uploadFile
 };

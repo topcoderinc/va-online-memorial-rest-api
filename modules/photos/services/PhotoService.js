@@ -15,7 +15,7 @@ const models = require('va-online-memorial-data-models');
 const logger = require('../../../common/logger');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('../../../common/errors');
 const helper = require('../../../common/helper');
-
+const s3Client = require('../../../lib/s3');
 /**
  * build db search query
  * @param filter the search filter
@@ -81,14 +81,15 @@ search.schema = {
  */
 function* create(files, body) {
   yield helper.ensureExists(models.Veteran, { id: body.veteranId });
+  const fileMeta = yield helper.uploadFile(files[0]);
 
   let theId;
   yield models.sequelize.transaction(t => co(function* () {
     // create photo file
     const file = yield models.File.create({
-      name: files[0].filename,
-      fileURL: `${config.appURL}/upload/${files[0].filename}`,
-      mimeType: files[0].mimetype
+      name: fileMeta.name,
+      fileURL: fileMeta.url,
+      mimeType: fileMeta.mimeType
     }, { transaction: t });
     // Create photo
     body.photoFileId = file.id;

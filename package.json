@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "va-online-memorial-data-models": "github:ramillim/va-online-memorial-data-models#add-salute-and-share-counts",
+    "aws-sdk": "^2.280.1",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.18.2",
     "chalk": "^2.3.0",
@@ -40,6 +40,8 @@
     "multer": "^1.3.0",
     "passport": "^0.4.0",
     "passport-http-bearer": "^1.0.1",
+    "uuid": "^3.3.2",
+    "va-online-memorial-data-models": "github:ramillim/va-online-memorial-data-models#add-salute-and-share-counts",
     "winston": "^2.4.0"
   },
   "devDependencies": {
