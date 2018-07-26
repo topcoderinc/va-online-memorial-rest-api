@@ -15,7 +15,7 @@ const util = require('util');
 const models = require('va-online-memorial-data-models');
 const path = require('path');
 const fs = require('fs-extra');
-
+const s3Client = require('../lib/s3.js');
 
 /**
  * Wrap generator function to standard express function
@@ -55,16 +55,20 @@ function autoWrapExpress(obj) {
  */
 function* removeFile(filename) {
   if (!filename) return;
-  const filepath = path.join(__dirname, '../public/upload', filename);
-  yield fs.remove(filepath);
+
+  if (process.env.NODE_ENV === 'production') {
+    yield s3Client.deleteFile(filename);
+  } else {
+    const filepath = path.join(__dirname, '../public/upload', filename);
+    yield fs.remove(filepath);
+  }
 }
 
 function* uploadFile(file) {
-  console.log(config.appURL);
-
   if (!file) return;
   let fileMeta = {};
-  if (process.env.production) {
+
+  if (process.env.NODE_ENV === 'production') {
     fileMeta = yield s3Client.uploadFile(file);
   } else {
     fileMeta = {

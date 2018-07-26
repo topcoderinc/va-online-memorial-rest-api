@@ -153,12 +153,14 @@ function* update(id, files, body) {
   const existing = yield getSingle(id);
   const filenameToRemove = existing.photoFile && existing.photoFile.name;
 
+  const fileMeta = yield helper.uploadFile(files[0]);
+
   yield models.sequelize.transaction(t => co(function* () {
     // create photo file
     const file = yield models.File.create({
-      name: files[0].filename,
-      fileURL: `${config.appURL}/upload/${files[0].filename}`,
-      mimeType: files[0].mimetype
+      name: fileMeta.name,
+      fileURL: fileMeta.url,
+      mimeType: fileMeta.mimeType
     }, { transaction: t });
     // update photo
     const photo = yield helper.ensureExists(models.Photo, { id });
@@ -194,8 +196,8 @@ function* remove(id) {
   const filenameToRemove = existing.photoFile && existing.photoFile.name;
 
   const photo = yield helper.ensureExists(models.Photo, { id });
-  const res = yield photo.destroy();
   yield helper.removeFile(filenameToRemove);
+  const res = yield photo.destroy();
   return res;
 }
 
