@@ -41,7 +41,7 @@
     "passport": "^0.4.0",
     "passport-http-bearer": "^1.0.1",
     "uuid": "^3.3.2",
-    "va-online-memorial-data-models": "github:ramillim/va-online-memorial-data-models#add-salute-and-share-counts",
+    "va-online-memorial-data-models": "github:topcoderinc/va-online-memorial-data-models",
     "winston": "^2.4.0"
   },
   "devDependencies": {
