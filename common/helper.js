@@ -97,6 +97,7 @@ function* uploadFile(file) {
   } else {
     // Uploads to local directory are actually handled by multer middleware
     // This method only creates uniformity for the metadata
+    fileMeta.name = file.filename;
     fileMeta.url = `${config.appURL}/upload/${file.filename}`;
   }
 
