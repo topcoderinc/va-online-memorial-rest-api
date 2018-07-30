@@ -40,7 +40,7 @@ Files uploaded to S3 are readable by the Public, which we may want to change in 
 
 An S3 bucket is required along with an IAM user. You will need to add the user's `ACCESS_KEY_ID` and `SECRET_ACCESS_KEY` to process environment variables as described in the following section.
 
-Files are uploaded with the prefix `uploads` (essentially creating a subdirectory). 
+Files are uploaded with the prefix `uploads` (essentially creating a subdirectory).
 
 At a minimum, the IAM user will need a security policy that includes `DeleteObject, GetObject, PutObject, PutObjectACL`.
 
