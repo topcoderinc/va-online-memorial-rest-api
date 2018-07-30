@@ -15,6 +15,7 @@ const util = require('util');
 const models = require('va-online-memorial-data-models');
 const path = require('path');
 const fs = require('fs-extra');
+const uuidv4 = require('uuid/v4');
 const s3Client = require('../lib/s3.js');
 
 /**
@@ -64,22 +65,6 @@ function* removeFile(filename) {
   }
 }
 
-function* uploadFile(file) {
-  if (!file) return;
-  let fileMeta = {};
-
-  if (process.env.NODE_ENV === 'production') {
-    fileMeta = yield s3Client.uploadFile(file);
-  } else {
-    fileMeta = {
-      mimeType: file.mimetype,
-      name: file.filename,
-      url: `${config.appURL}/upload/${file.filename}`
-    }
-  }
-  return fileMeta;
-}
-
 /**
  * Remove files.
  * @param filenames the file names
@@ -89,6 +74,43 @@ function* removeFiles(filenames) {
   for (let i = 0; i < filenames.length; i += 1) {
     yield removeFile(filenames[i]);
   }
+}
+
+/**
+ * Uploads file to S3 in production. In development, it only generates
+ * metadata since the uploading to local storage is handled by middleware.
+ * @param file the file object
+ */
+function* uploadFile(file) {
+  if (!file) return;
+
+  const fileMeta = {
+    mimeType: file.mimetype,
+    originalName: file.originalname
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    const uuid = uuidv4();
+    yield s3Client.uploadFile(file, uuid);
+    fileMeta.name = uuid;
+    fileMeta.url = s3Client.fileUrl(uuid);
+  } else {
+    // Uploads to local directory are actually handled by multer middleware
+    // This method only creates uniformity for the metadata
+    fileMeta.url = `${config.appURL}/upload/${file.filename}`;
+  }
+
+  return fileMeta;
+}
+
+/**
+ * Parses an uploaded file name from its url.
+ * Primarily used for NextOfKin proofs since the original file name
+ * is stored on the model.
+ * @param url the file's url
+ */
+function parseFileNameFromUrl(url) {
+  return url.split('/').pop();
 }
 
 /**
@@ -188,5 +210,6 @@ module.exports = {
   canManageVeteran,
   populateUsersForEntity,
   populateUsersForEntities,
-  uploadFile
+  uploadFile,
+  parseFileNameFromUrl
 };
