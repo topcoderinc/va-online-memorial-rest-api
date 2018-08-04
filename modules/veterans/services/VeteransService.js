@@ -132,14 +132,12 @@ function* create(files, body) {
   }
 
   let veteranId;
-  const fileMeta = yield helper.uploadFile(files[0]);
-
   yield models.sequelize.transaction(t => co(function* () {
     // create file
     const file = yield models.File.create({
-      name: fileMeta.name,
-      fileURL: fileMeta.url,
-      mimeType: fileMeta.mimeType
+      name: files[0].filename,
+      fileURL: `${config.appURL}/upload/${files[0].filename}`,
+      mimeType: files[0].mimetype
     }, { transaction: t });
     // Create veteran
     const veteran = yield models.Veteran.create({
@@ -263,14 +261,13 @@ function* update(id, files, body) {
   // get existing file name to remove
   const existing = yield getSingle(id);
   const filenameToRemove = existing.profilePicture && existing.profilePicture.name;
-  const fileMeta = yield helper.uploadFile(files[0]);
 
   yield models.sequelize.transaction(t => co(function* () {
     // create file
     const file = yield models.File.create({
-      name: fileMeta.name,
-      fileURL: fileMeta.url,
-      mimeType: fileMeta.mimeType
+      name: files[0].filename,
+      fileURL: `${config.appURL}/upload/${files[0].filename}`,
+      mimeType: files[0].mimetype
     }, { transaction: t });
     const veteran = yield helper.ensureExists(models.Veteran, { id });
     // update veteran
