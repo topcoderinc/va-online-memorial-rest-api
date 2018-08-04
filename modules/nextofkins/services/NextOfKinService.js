@@ -85,11 +85,10 @@ function* create(files, body) {
     // create proof files
     const fileIds = [];
     for (let i = 0; i < files.length; i += 1) {
-      const fileMeta = yield helper.uploadFile(files[i]);
       const file = yield models.File.create({
-        name: fileMeta.originalName,
-        fileURL: fileMeta.url,
-        mimeType: fileMeta.mimeType
+        name: files[i].originalname,
+        fileURL: `${config.appURL}/upload/${files[i].filename}`,
+        mimeType: files[i].mimetype
       }, { transaction: t });
       fileIds.push(file.id);
     }
@@ -164,19 +163,16 @@ function* update(id, files, body) {
 
   // get existing file names to remove
   const existing = yield getSingle(id);
-  const filenamesToRemove = _.map(existing.proofs || [], proof => {
-    return helper.parseFileNameFromUrl(proof.fileURL);
-  });
+  const filenamesToRemove = _.map(existing.proofs || [], p => p.name);
 
   yield models.sequelize.transaction(t => co(function* () {
     // create proof files
     const fileIds = [];
     for (let i = 0; i < files.length; i += 1) {
-      const fileMeta = yield helper.uploadFile(files[i]);
       const file = yield models.File.create({
-        name: fileMeta.originalName,
-        fileURL: fileMeta.url,
-        mimeType: fileMeta.mimeType
+        name: files[i].filename,
+        fileURL: `${config.appURL}/upload/${files[i].filename}`,
+        mimeType: files[i].mimetype
       }, { transaction: t });
       fileIds.push(file.id);
     }
@@ -216,9 +212,7 @@ update.schema = {
 function* remove(id) {
   // get existing file names to remove
   const existing = yield getSingle(id);
-  const filenamesToRemove = _.map(existing.proofs || [], proof => {
-    return helper.parseFileNameFromUrl(proof.fileURL);
-  });
+  const filenamesToRemove = _.map(existing.proofs || [], p => p.name);
 
   const kin = yield helper.ensureExists(models.NextOfKin, { id });
   const res = yield kin.destroy();

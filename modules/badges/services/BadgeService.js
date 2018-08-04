@@ -112,8 +112,6 @@ function* getSingle(id) {
     ]
   });
   if (!badge) throw new NotFoundError(`Badge with id: ${id} does not exist!`);
-  badge.viewCount = parseInt(badge.viewCount, 10) + 1;
-  yield badge.save();
   return yield helper.populateUsersForEntity(badge);
 }
 
@@ -210,7 +208,7 @@ reject.schema = {
  * @param {Number} userId - the current user id
  */
 function* salute(id, userId) {
-  const badge = yield helper.ensureExists(models.Badge, { id });
+  yield helper.ensureExists(models.Badge, { id });
 
   const s = yield models.PostSalute.findOne({
     where: {
@@ -220,8 +218,6 @@ function* salute(id, userId) {
     }
   });
   if (!s) {
-    badge.saluteCount = parseInt(badge.saluteCount, 10) + 1;
-    yield badge.save();
     yield models.PostSalute.create({
       userId,
       postType: models.modelConstants.PostTypes.Badge,
@@ -263,11 +259,10 @@ isSaluted.schema = {
  * @param {Number} id - the badge id
  * @param {Number} userId - the current user id
  */
-function* share(id, userId) {
-  const badge = yield helper.ensureExists(models.Badge, { id });
-  badge.shareCount = parseInt(badge.shareCount, 10) + 1;
-  yield badge.save();
-  return badge;
+function* share(id, userId) { // eslint-disable-line no-unused-vars
+  yield helper.ensureExists(models.Badge, { id });
+  // it should increase the share count,
+  // but statistics is out of scope, so it does nothing at present
 }
 
 share.schema = {
