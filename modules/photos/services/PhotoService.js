@@ -15,7 +15,7 @@ const models = require('va-online-memorial-data-models');
 const logger = require('../../../common/logger');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('../../../common/errors');
 const helper = require('../../../common/helper');
-
+const s3Client = require('../../../lib/s3');
 /**
  * build db search query
  * @param filter the search filter
@@ -81,14 +81,15 @@ search.schema = {
  */
 function* create(files, body) {
   yield helper.ensureExists(models.Veteran, { id: body.veteranId });
+  const fileMeta = yield helper.uploadFile(files[0]);
 
   let theId;
   yield models.sequelize.transaction(t => co(function* () {
     // create photo file
     const file = yield models.File.create({
-      name: files[0].filename,
-      fileURL: `${config.appURL}/upload/${files[0].filename}`,
-      mimeType: files[0].mimetype
+      name: fileMeta.name,
+      fileURL: fileMeta.url,
+      mimeType: fileMeta.mimeType
     }, { transaction: t });
     // Create photo
     body.photoFileId = file.id;
@@ -128,6 +129,8 @@ function* getSingle(id) {
     ]
   });
   if (!photo) throw new NotFoundError(`Photo with id: ${id} does not exist!`);
+  photo.viewCount = parseInt(photo.viewCount, 10) + 1;
+  yield photo.save();
   return yield helper.populateUsersForEntity(photo);
 }
 
@@ -150,12 +153,14 @@ function* update(id, files, body) {
   const existing = yield getSingle(id);
   const filenameToRemove = existing.photoFile && existing.photoFile.name;
 
+  const fileMeta = yield helper.uploadFile(files[0]);
+
   yield models.sequelize.transaction(t => co(function* () {
     // create photo file
     const file = yield models.File.create({
-      name: files[0].filename,
-      fileURL: `${config.appURL}/upload/${files[0].filename}`,
-      mimeType: files[0].mimetype
+      name: fileMeta.name,
+      fileURL: fileMeta.url,
+      mimeType: fileMeta.mimeType
     }, { transaction: t });
     // update photo
     const photo = yield helper.ensureExists(models.Photo, { id });
@@ -191,8 +196,8 @@ function* remove(id) {
   const filenameToRemove = existing.photoFile && existing.photoFile.name;
 
   const photo = yield helper.ensureExists(models.Photo, { id });
-  const res = yield photo.destroy();
   yield helper.removeFile(filenameToRemove);
+  const res = yield photo.destroy();
   return res;
 }
 
@@ -246,7 +251,7 @@ reject.schema = {
  * @param {Number} userId - the current user id
  */
 function* salute(id, userId) {
-  yield helper.ensureExists(models.Photo, { id });
+  const photo = yield helper.ensureExists(models.Photo, { id });
 
   const s = yield models.PostSalute.findOne({
     where: {
@@ -256,6 +261,8 @@ function* salute(id, userId) {
     }
   });
   if (!s) {
+    photo.saluteCount = parseInt(photo.saluteCount, 10) + 1;
+    yield photo.save();
     yield models.PostSalute.create({
       userId,
       postType: models.modelConstants.PostTypes.Photo,
@@ -297,10 +304,11 @@ isSaluted.schema = {
  * @param {Number} id - the photo id
  * @param {Number} userId - the current user id
  */
-function* share(id, userId) { // eslint-disable-line no-unused-vars
-  yield helper.ensureExists(models.Photo, { id });
-  // it should increase the share count,
-  // but statistics is out of scope, so it does nothing at present
+function* share(id, userId) {
+  const photo = yield helper.ensureExists(models.Photo, { id });
+  photo.shareCount = parseInt(photo.shareCount, 10) + 1;
+  yield photo.save();
+  return photo;
 }
 
 share.schema = {

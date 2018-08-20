@@ -108,6 +108,8 @@ function* getSingle(id) {
     ]
   });
   if (!testimonial) throw new NotFoundError(`Testimonial with id: ${id} does not exist!`);
+  testimonial.viewCount = parseInt(testimonial.viewCount, 10) + 1;
+  yield testimonial.save();
   return yield helper.populateUsersForEntity(testimonial);
 }
 
@@ -202,7 +204,7 @@ reject.schema = {
  * @param {Number} userId - the current user id
  */
 function* salute(id, userId) {
-  yield helper.ensureExists(models.Testimonial, { id });
+  const testimonial = yield helper.ensureExists(models.Testimonial, { id });
 
   const s = yield models.PostSalute.findOne({
     where: {
@@ -212,6 +214,8 @@ function* salute(id, userId) {
     }
   });
   if (!s) {
+    testimonial.saluteCount = parseInt(testimonial.saluteCount, 10) + 1;
+    yield testimonial.save();
     yield models.PostSalute.create({
       userId,
       postType: models.modelConstants.PostTypes.Testimonial,
@@ -253,10 +257,11 @@ isSaluted.schema = {
  * @param {Number} id - the testimonial id
  * @param {Number} userId - the current user id
  */
-function* share(id, userId) { // eslint-disable-line no-unused-vars
-  yield helper.ensureExists(models.Testimonial, { id });
-  // it should increase the share count,
-  // but statistics is out of scope, so it does nothing at present
+function* share(id, userId) {
+  const testimonial = yield helper.ensureExists(models.Testimonial, { id });
+  testimonial.shareCount = parseInt(testimonial.shareCount, 10) + 1;
+  yield testimonial.save();
+  return testimonial;
 }
 
 share.schema = {

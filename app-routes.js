@@ -16,7 +16,13 @@ const passport = require('passport');
 const { ForbiddenError, UnauthorizedError } = require('./common/errors');
 const helper = require('./common/helper');
 
-const upload = multer({ dest: './public/upload' });
+let upload = null;
+
+if (process.env.NODE_ENV === 'production') {
+  upload = multer();
+} else {
+  upload = multer({ dest: './public/upload' });
+}
 
 /**
  * Configure routes for express
