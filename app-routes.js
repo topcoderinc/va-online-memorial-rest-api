@@ -13,6 +13,8 @@ const Path = require('path');
 const multer = require('multer');
 const config = require('config');
 const passport = require('passport');
+const constants = require('./constants');
+const anonymous = constants.Passports.anonymous;
 const { ForbiddenError, UnauthorizedError } = require('./common/errors');
 const helper = require('./common/helper');
 
@@ -23,6 +25,7 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   upload = multer({ dest: './public/upload' });
 }
+
 
 /**
  * Configure routes for express
@@ -46,7 +49,13 @@ module.exports = (app) => {
             next();
           });
           // authenticate by passport if exists auth in definition of routes.
-          if (def.auth) {
+          if (def.auth && def.auth.includes(anonymous)) {
+            actions.push((req, res, next) => {
+              passport.authenticate(def.auth, { session: false }, (err) => {
+                next(err);
+              })(req, res, next);
+            });
+          } else if (def.auth) {
             actions.push((req, res, next) => {
               passport.authenticate(def.auth, (err, user) => {
                 if (err || !user) {
