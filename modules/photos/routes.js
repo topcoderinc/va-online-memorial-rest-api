@@ -10,12 +10,13 @@
 
 const constants = require('../../constants');
 
+const anonymous = constants.Passports.anonymous;
 const jwtAuth = constants.Passports.jwt;
 
 module.exports = {
   '/photos': {
     get: {
-      auth: jwtAuth,
+      auth: [anonymous, jwtAuth],
       controller: 'PhotoController',
       method: 'search'
     },
@@ -28,7 +29,7 @@ module.exports = {
   },
   '/photos/:id': {
     get: {
-      auth: jwtAuth,
+      auth: [anonymous, jwtAuth],
       controller: 'PhotoController',
       method: 'getSingle'
     },

@@ -41,10 +41,13 @@ function buildDBFilter(filter) {
  */
 function* search(query, user) {
   // if user is not manager of veteran, then only approved records can be shown
-  if (query.veteranId && !(yield helper.canManageVeteran(user, query.veteranId))) {
-    if (!query.status) {
+  if (query.veteranId) {
+    if (!query.status || !user) {
       query.status = models.modelConstants.Statuses.Approved;
-    } else if (query.status !== models.modelConstants.Statuses.Approved) {
+    } else if (
+      !(yield helper.canManageVeteran(user, query.veteranId)) &&
+      query.status !== models.modelConstants.Statuses.Approved
+    ) {
       throw new BadRequestError('User can search only approved veteran content.');
     }
   }
@@ -69,7 +72,7 @@ search.schema = {
     sortColumn: Joi.string().valid('id', 'veteranId', 'eventDate', 'eventTypeId', 'status').default('id'),
     sortOrder: Joi.sortOrder()
   }),
-  user: Joi.object().required()
+  user: Joi.object()
 };
 
 /**

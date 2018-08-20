@@ -10,6 +10,7 @@
 
 const constants = require('../../constants');
 
+const anonymous = constants.Passports.anonymous;
 const jwtAuth = constants.Passports.jwt;
 const { modelConstants } = require('va-online-memorial-data-models');
 
@@ -29,7 +30,7 @@ module.exports = {
   },
   '/veterans/:id': {
     get: {
-      auth: jwtAuth,
+      auth: [anonymous, jwtAuth],
       controller: 'VeteransController',
       method: 'getSingle'
     },
@@ -49,7 +50,7 @@ module.exports = {
   },
   '/veterans/:id/related': {
     get: {
-      auth: jwtAuth,
+      auth: [anonymous, jwtAuth],
       controller: 'VeteransController',
       method: 'getRelated'
     }

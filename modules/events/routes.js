@@ -10,12 +10,13 @@
 
 const constants = require('../../constants');
 
+const anonymous = constants.Passports.anonymous;
 const jwtAuth = constants.Passports.jwt;
 
 module.exports = {
   '/events': {
     get: {
-      auth: jwtAuth,
+      auth: [anonymous, jwtAuth],
       controller: 'EventController',
       method: 'search'
     },
@@ -27,7 +28,7 @@ module.exports = {
   },
   '/events/:id': {
     get: {
-      auth: jwtAuth,
+      auth: [anonymous, jwtAuth],
       controller: 'EventController',
       method: 'getSingle'
     },
