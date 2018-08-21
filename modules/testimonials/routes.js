@@ -66,7 +66,7 @@ module.exports = {
   },
   '/testimonials/:id/isSaluted': {
     get: {
-      auth: jwtAuth,
+      auth: [anonymous, jwtAuth],
       controller: 'TestimonialController',
       method: 'isSaluted'
     }
