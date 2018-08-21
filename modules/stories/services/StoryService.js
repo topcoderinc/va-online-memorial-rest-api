@@ -41,16 +41,23 @@ function buildDBFilter(filter) {
  */
 function* search(query, user) {
   // if user is not manager of veteran, then only approved records can be shown
-  if (query.veteranId && !(yield helper.canManageVeteran(user, query.veteranId))) {
-    if (!query.status) {
+  if (query.veteranId) {
+    if (!query.status || !user) {
       query.status = models.modelConstants.Statuses.Approved;
-    } else if (query.status !== models.modelConstants.Statuses.Approved) {
+    } else if (
+      !(yield helper.canManageVeteran(user, query.veteranId)) &&
+      (query.status !== models.modelConstants.Statuses.Approved)
+    ) {
       throw new BadRequestError('User can search only approved veteran content.');
     }
   }
 
   const q = buildDBFilter(query);
   if (query.review) {
+    if (!user) {
+      throw new BadRequestError('User must be logged in to make this query.');
+    }
+
     const nextOfKins = yield models.NextOfKin.find({
       where: {
         userId: user.id,
@@ -79,7 +86,7 @@ search.schema = {
     sortColumn: Joi.string().valid('id', 'veteranId', 'title', 'text', 'status').default('id'),
     sortOrder: Joi.sortOrder()
   }),
-  user: Joi.object().required()
+  user: Joi.object()
 };
 
 /**
@@ -247,6 +254,10 @@ salute.schema = {
 function* isSaluted(id, userId) {
   yield helper.ensureExists(models.Story, { id });
 
+  if (userId == null) {
+    return { saluted: false };
+  }
+
   const s = yield models.PostSalute.findOne({
     where: {
       userId,
@@ -259,15 +270,14 @@ function* isSaluted(id, userId) {
 
 isSaluted.schema = {
   id: Joi.id(),
-  userId: Joi.id()
+  userId: Joi.id().allow(null)
 };
 
 /**
  * Share story
  * @param {Number} id - the story id
- * @param {Number} userId - the current user id
  */
-function* share(id, userId) {
+function* share(id) {
   const story = yield helper.ensureExists(models.Story, { id });
   story.shareCount = parseInt(story.shareCount, 10) + 1;
   yield story.save();
@@ -275,8 +285,7 @@ function* share(id, userId) {
 }
 
 share.schema = {
-  id: Joi.id(),
-  userId: Joi.id()
+  id: Joi.id()
 };
 
 

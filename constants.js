@@ -9,6 +9,7 @@
  */
 
 const Passports = {
+  anonymous: 'anonymous',
   jwt: 'jwt-bearer'
 };
 
