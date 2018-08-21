@@ -68,14 +68,13 @@ module.exports = {
   },
   '/photos/:id/isSaluted': {
     get: {
-      auth: jwtAuth,
+      auth: [anonymous, jwtAuth],
       controller: 'PhotoController',
       method: 'isSaluted'
     }
   },
   '/photos/:id/share': {
     put: {
-      auth: jwtAuth,
       controller: 'PhotoController',
       method: 'share'
     }

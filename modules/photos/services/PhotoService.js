@@ -287,6 +287,10 @@ salute.schema = {
 function* isSaluted(id, userId) {
   yield helper.ensureExists(models.Photo, { id });
 
+  if (userId == null) {
+    return { saluted: false };
+  }
+
   const s = yield models.PostSalute.findOne({
     where: {
       userId,
@@ -299,15 +303,14 @@ function* isSaluted(id, userId) {
 
 isSaluted.schema = {
   id: Joi.id(),
-  userId: Joi.id()
+  userId: Joi.id().allow(null)
 };
 
 /**
  * Share photo
  * @param {Number} id - the photo id
- * @param {Number} userId - the current user id
  */
-function* share(id, userId) {
+function* share(id) {
   const photo = yield helper.ensureExists(models.Photo, { id });
   photo.shareCount = parseInt(photo.shareCount, 10) + 1;
   yield photo.save();
@@ -315,8 +318,7 @@ function* share(id, userId) {
 }
 
 share.schema = {
-  id: Joi.id(),
-  userId: Joi.id()
+  id: Joi.id()
 };
 
 

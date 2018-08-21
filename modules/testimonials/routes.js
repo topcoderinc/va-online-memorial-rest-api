@@ -73,7 +73,6 @@ module.exports = {
   },
   '/testimonials/:id/share': {
     put: {
-      auth: jwtAuth,
       controller: 'TestimonialController',
       method: 'share'
     }

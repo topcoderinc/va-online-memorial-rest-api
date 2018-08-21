@@ -73,7 +73,6 @@ module.exports = {
   },
   '/badges/:id/share': {
     put: {
-      auth: jwtAuth,
       controller: 'BadgeController',
       method: 'share'
     }

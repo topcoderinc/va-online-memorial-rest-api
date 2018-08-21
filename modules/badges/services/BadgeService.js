@@ -246,6 +246,10 @@ salute.schema = {
 function* isSaluted(id, userId) {
   yield helper.ensureExists(models.Badge, { id });
 
+  if (userId == null) {
+    return { saluted: false };
+  }
+
   const s = yield models.PostSalute.findOne({
     where: {
       userId,
@@ -258,15 +262,14 @@ function* isSaluted(id, userId) {
 
 isSaluted.schema = {
   id: Joi.id(),
-  userId: Joi.id()
+  userId: Joi.id().allow(null)
 };
 
 /**
  * Share badge
  * @param {Number} id - the badge id
- * @param {Number} userId - the current user id
  */
-function* share(id, userId) {
+function* share(id) {
   const badge = yield helper.ensureExists(models.Badge, { id });
   badge.shareCount = parseInt(badge.shareCount, 10) + 1;
   yield badge.save();
@@ -274,8 +277,7 @@ function* share(id, userId) {
 }
 
 share.schema = {
-  id: Joi.id(),
-  userId: Joi.id()
+  id: Joi.id()
 };
 
 

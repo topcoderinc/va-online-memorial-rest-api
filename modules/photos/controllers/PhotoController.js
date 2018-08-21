@@ -93,7 +93,8 @@ function* salute(req, res) {
  * @param res the response
  */
 function* isSaluted(req, res) {
-  res.json(yield PhotoService.isSaluted(req.params.id, req.user.id));
+  const userId = req.user ? req.user.id : null;
+  res.json(yield PhotoService.isSaluted(req.params.id, userId));
 }
 
 /**
@@ -102,7 +103,7 @@ function* isSaluted(req, res) {
  * @param res the response
  */
 function* share(req, res) {
-  yield PhotoService.share(req.params.id, req.user.id);
+  yield PhotoService.share(req.params.id);
   res.status(200).end();
 }
 

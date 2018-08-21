@@ -241,6 +241,10 @@ salute.schema = {
 function* isSaluted(id, userId) {
   yield helper.ensureExists(models.Testimonial, { id });
 
+  if (userId == null) {
+    return { saluted: false };
+  }
+
   const s = yield models.PostSalute.findOne({
     where: {
       userId,
@@ -253,15 +257,14 @@ function* isSaluted(id, userId) {
 
 isSaluted.schema = {
   id: Joi.id(),
-  userId: Joi.id()
+  userId: Joi.id().allow(null)
 };
 
 /**
  * Share testimonial
  * @param {Number} id - the testimonial id
- * @param {Number} userId - the current user id
  */
-function* share(id, userId) {
+function* share(id) {
   const testimonial = yield helper.ensureExists(models.Testimonial, { id });
   testimonial.shareCount = parseInt(testimonial.shareCount, 10) + 1;
   yield testimonial.save();
@@ -269,8 +272,7 @@ function* share(id, userId) {
 }
 
 share.schema = {
-  id: Joi.id(),
-  userId: Joi.id()
+  id: Joi.id()
 };
 
 

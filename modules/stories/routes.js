@@ -66,14 +66,13 @@ module.exports = {
   },
   '/stories/:id/isSaluted': {
     get: {
-      auth: jwtAuth,
+      auth: [anonymous, jwtAuth],
       controller: 'StoryController',
       method: 'isSaluted'
     }
   },
   '/stories/:id/share': {
     put: {
-      auth: jwtAuth,
       controller: 'StoryController',
       method: 'share'
     }
