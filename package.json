@@ -41,6 +41,8 @@
     "passport": "^0.4.0",
     "passport-anonymous": "^1.0.1",
     "passport-http-bearer": "^1.0.1",
+    "sequelize": "^4.38.0",
+    "sequelize-cli": "^4.1.1",
     "uuid": "^3.3.2",
     "va-online-memorial-data-models": "github:topcoderinc/va-online-memorial-data-models",
     "winston": "^2.4.0"
