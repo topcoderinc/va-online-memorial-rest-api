@@ -103,13 +103,10 @@ getSingle.schema = {
 function* update(id, body, currentUser) {
   const user = yield helper.ensureExists(models.User, { id });
 
-  // if current user is not admin, then he can only update himself, and role can not be changed
+  // if current user is not admin, then he can only update himself, include role
   if (currentUser.role !== models.modelConstants.UserRoles.Admin) {
     if (id !== _.toNumber(currentUser.id)) {
       throw new ForbiddenError('You can not update other user.');
-    }
-    if (body.role && user.role !== body.role) {
-      throw new ForbiddenError('You can not change your role.');
     }
   }
 

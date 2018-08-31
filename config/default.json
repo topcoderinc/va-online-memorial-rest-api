@@ -8,5 +8,16 @@
   "dbConfig": {
     "db_url": "postgres://postgres:123456@localhost:5432/vaonline"
   },
+  "email": {
+    "pool": true,
+    "host": "smtp.163.com",
+    "port": 465,
+    "secure": true,
+    "auth": {
+      "user": "jiangliwuxyz@163.com",
+      "pass": "ipple100200"
+    },
+    "debug": true
+  },
   "appURL": "http://localhost:4000"
 }

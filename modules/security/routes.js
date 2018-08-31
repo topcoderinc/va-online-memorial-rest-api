@@ -1,5 +1,3 @@
-'use strict';
-
 /*
  * Copyright (c) 2018 Topcoder, Inc. All rights reserved.
  */
@@ -13,35 +11,41 @@ const constants = require('../../constants');
 const jwtAuth = constants.Passports.jwt;
 
 module.exports = {
+  '/verify-email': {
+    get: {
+      controller: 'SecurityController',
+      method: 'verifyEmail',
+    },
+  },
   '/register': {
     post: {
       controller: 'SecurityController',
-      method: 'register'
-    }
+      method: 'register',
+    },
   },
   '/login': {
     post: {
       controller: 'SecurityController',
-      method: 'login'
-    }
+      method: 'login',
+    },
   },
   '/initiateForgotPassword': {
     post: {
       controller: 'SecurityController',
-      method: 'initiateForgotPassword'
-    }
+      method: 'initiateForgotPassword',
+    },
   },
   '/changeForgotPassword': {
     post: {
       controller: 'SecurityController',
-      method: 'changeForgotPassword'
-    }
+      method: 'changeForgotPassword',
+    },
   },
   '/updatePassword': {
     put: {
       auth: jwtAuth,
       controller: 'SecurityController',
-      method: 'updatePassword'
-    }
-  }
+      method: 'updatePassword',
+    },
+  },
 };
