@@ -57,10 +57,20 @@ function* updatePassword(req, res) {
   res.status(200).end();
 }
 
+/**
+ * verify Email address
+ * @param req the request
+ * @param res the response
+ */
+function* verifyEmail(req, res) {
+  res.json(yield SecurityService.verifyEmail(req.query));
+}
+
 module.exports = {
   register,
+  verifyEmail,
   login,
   initiateForgotPassword,
   changeForgotPassword,
-  updatePassword
+  updatePassword,
 };

@@ -37,6 +37,15 @@ function buildDBFilter(filter) {
  * @param {object} query the query object
  */
 function* search(query) {
+  const flags = yield models.Flag.findAll({where: {}});
+  for (let i = 0; i < flags.length; i++) {
+    const flag = flags[i];
+    try {
+      yield validatePost(flag.postId, flag.postType);
+    } catch (e) {
+      yield flag.destroy();
+    }
+  }
   const q = buildDBFilter(query);
   const docs = yield models.Flag.findAndCountAll(q);
   const items = yield helper.populateUsersForEntities(docs.rows);

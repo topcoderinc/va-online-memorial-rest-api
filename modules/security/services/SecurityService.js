@@ -11,6 +11,7 @@ const Joi = require('joi');
 const config = require('config');
 const logger = require('../../../common/logger');
 const helper = require('../../../common/helper');
+const uuid = require('uuid');
 const {
   User,
   modelConstants
@@ -40,15 +41,22 @@ function* register(user) {
   existing = yield User.findOne({ where: { username: user.username } });
   if (existing) throw new ConflictError(`Username: ${user.username} is already registered.`);
 
+  // Generate token
+  const token = uuid();
+  const link = `${config.appURL}/api/v1/verify-email?email=${user.email}&token=${token}`;
+  yield helper.sendEmail({
+    to: user.email,
+    subject: 'Verify Your Email',
+    html: `Dear ${user.email}<br/> <br/>` +
+    `Thank you for signing up. Please click on this <a href="${link}">link</a> which will validate the email address that you used to register.` +
+    '<br/>',
+  });
   user.role = modelConstants.UserRoles.User;
-  user.status = modelConstants.UserStatuses.Active;
+  user.status = modelConstants.UserStatuses.Blocked;
   // Encrypt password
   user.passwordHash = yield encryptPassword(user.password);
   delete user.password;
   const newUser = yield User.create(user);
-
-  // Generate token
-  const token = createToken(newUser.toJSON());
   newUser.accessToken = token;
   newUser.accessTokenExpiresAt = getExpiresDate(config.tokenExpiresIn);
 
@@ -85,6 +93,9 @@ function* login(credentials) {
   const user = yield User.findOne(filter);
 
   if (!user) throw new UnauthorizedError('Invalid credentials!');
+  if (user.status === modelConstants.UserStatuses.Blocked) {
+    throw new UnauthorizedError('Account is not verified.');
+  }
   if (user.status !== modelConstants.UserStatuses.Active) throw new UnauthorizedError('Account is not active.');
 
   // Check if password matches with the encrypted password
@@ -179,12 +190,33 @@ updatePassword.schema = {
   }).required()
 };
 
+/**
+ * verify Email with token
+ * @param entity the token entity
+ */
+function* verifyEmail(entity) {
+  const user = yield helper.ensureExists(User, {email: entity.email});
+
+  if (user.status === modelConstants.UserStatuses.Active) {
+    throw new ValidationError('User already verified');
+  }
+  if (user.accessToken === entity.token) {
+    user.status = modelConstants.UserStatuses.Active;
+    user.accessToken = null;
+    yield user.save();
+  } else {
+    throw new ValidationError('Token error');
+  }
+  return {message: `${entity.email} verify succeed`};
+}
+
 module.exports = {
   register,
   login,
+  verifyEmail,
   initiateForgotPassword,
   changeForgotPassword,
-  updatePassword
+  updatePassword,
 };
 
 logger.buildService(module.exports);

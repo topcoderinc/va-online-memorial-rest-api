@@ -1,4 +1,4 @@
-'use strict';
+
 
 /*
  * Copyright (c) 2018 Topcoder, Inc. All rights reserved.
@@ -17,6 +17,12 @@ const path = require('path');
 const fs = require('fs-extra');
 const uuidv4 = require('uuid/v4');
 const s3Client = require('../lib/s3.js');
+const nodemailer = require('nodemailer');
+const logger = require('../common/logger');
+
+const transporter = nodemailer.createTransport(_.extend(config.email, { logger }), {
+  from: `${config.email.auth.user}`,
+});
 
 /**
  * Wrap generator function to standard express function
@@ -86,7 +92,7 @@ function* uploadFile(file) {
 
   const fileMeta = {
     mimeType: file.mimetype,
-    originalName: file.originalname
+    originalName: file.originalname,
   };
 
   if (process.env.NODE_ENV === 'production') {
@@ -152,8 +158,8 @@ function* canManageVeteran(user, veteranId) {
     where: {
       userId: user.id,
       veteranId,
-      status: models.modelConstants.Statuses.Approved
-    }
+      status: models.modelConstants.Statuses.Approved,
+    },
   });
   return !!entity;
 }
@@ -166,7 +172,7 @@ function* canManageVeteran(user, veteranId) {
 function* getUserInfo(id) {
   return yield models.User.findOne({
     attributes: ['id', 'username', 'email', 'firstName', 'lastName'],
-    where: { id }
+    where: { id },
   });
 }
 
@@ -201,8 +207,45 @@ function* populateUsersForEntities(entities) {
   return res;
 }
 
+/**
+ * send email to user
+ * @param emailEntity the email entity ,  {to:,subject:,text:,html:}
+ * @returns {Promise}
+ */
+function* sendEmail(emailEntity) { // eslint-disable0line
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(emailEntity, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+/**
+ * verify Email with token
+ * @param entity the token entity
+ */
+function* verifyEmail(entity) {
+  const user = yield getUserByEmail(entity.email, true);
+
+  if (user.verified) {
+    throw new errors.HttpStatusError(httpStatus.BAD_REQUEST, 'user already verified');
+  }
+  if (user.verificationToken === entity.verificationToken) {
+    user.verified = true;
+    user.verificationToken = null;
+    yield user.save();
+  }
+  return { message: `${entity.email} verify succeed` };
+}
+
 module.exports = {
   wrapExpress,
+  verifyEmail,
+  sendEmail,
   autoWrapExpress,
   removeFile,
   removeFiles,
@@ -212,5 +255,5 @@ module.exports = {
   populateUsersForEntity,
   populateUsersForEntities,
   uploadFile,
-  parseFileNameFromUrl
+  parseFileNameFromUrl,
 };

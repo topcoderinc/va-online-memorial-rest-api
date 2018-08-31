@@ -1,5 +1,3 @@
-'use strict';
-
 /*
  * Copyright (c) 2018 Topcoder, Inc. All rights reserved.
  */
@@ -10,7 +8,6 @@
 
 const constants = require('../../constants');
 
-const anonymous = constants.Passports.anonymous;
 const jwtAuth = constants.Passports.jwt;
 
 module.exports = {
@@ -18,52 +15,52 @@ module.exports = {
     get: {
       auth: jwtAuth,
       controller: 'UserController',
-      method: 'search'
-    }
+      method: 'search',
+    },
   },
   '/users/:id': {
     get: {
       auth: jwtAuth,
       controller: 'UserController',
-      method: 'getSingle'
+      method: 'getSingle',
     },
     put: {
       auth: jwtAuth,
       controller: 'UserController',
-      method: 'update'
-    }
+      method: 'update',
+    },
   },
   '/me': {
     get: {
       auth: jwtAuth,
       controller: 'UserController',
-      method: 'getMe'
-    }
+      method: 'getMe',
+    },
   },
   '/me/deactivate': {
     put: {
       auth: jwtAuth,
       controller: 'UserController',
-      method: 'deactivateMe'
-    }
+      method: 'deactivateMe',
+    },
   },
   '/me/activate': {
     put: {
       auth: jwtAuth,
       controller: 'UserController',
-      method: 'activateMe'
-    }
+      method: 'activateMe',
+    },
   },
   '/me/notificationPreferences': {
     get: {
       auth: jwtAuth,
       controller: 'UserController',
-      method: 'getNotificationPreferences'
+      method: 'getNotificationPreferences',
     },
     put: {
       auth: jwtAuth,
       controller: 'UserController',
-      method: 'saveNotificationPreferences'
-    }
-  }
+      method: 'saveNotificationPreferences',
+    },
+  },
 };
