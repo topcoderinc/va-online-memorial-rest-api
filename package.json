@@ -6,6 +6,9 @@
   "directories": {
     "doc": "docs"
   },
+  "engines": {
+    "node": "8.11.2"
+  },
   "scripts": {
     "start": "node app.js",
     "init-data": "node init-data.js",
