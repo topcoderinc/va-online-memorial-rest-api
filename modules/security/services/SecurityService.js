@@ -1,5 +1,3 @@
-'use strict';
-
 /*
  * Copyright (c) 2018 Topcoder, Inc. All rights reserved.
  */
@@ -12,20 +10,21 @@ const config = require('config');
 const logger = require('../../../common/logger');
 const helper = require('../../../common/helper');
 const uuid = require('uuid');
+const Sequelize = require('va-online-memorial-data-models').sequelize;
 const {
   User,
-  modelConstants
+  modelConstants,
 } = require('va-online-memorial-data-models');
 const {
   ConflictError,
   UnauthorizedError,
-  ValidationError
+  ValidationError,
 } = require('../../../common/errors');
 const {
   encryptPassword,
   createToken,
   comparePassword,
-  getExpiresDate
+  getExpiresDate,
 } = require('../helper');
 
 /**
@@ -51,11 +50,11 @@ function* register(user) {
     `Thank you for signing up. Please click on this <a href="${link}">link</a> which will validate the email address that you used to register.` +
     '<br/>',
   });
-  user.role = modelConstants.UserRoles.User;
-  user.status = modelConstants.UserStatuses.Blocked;
+  user.role = modelConstants.UserRoles.User; // eslint-disable-line no-param-reassign
+  user.status = modelConstants.UserStatuses.Blocked; // eslint-disable-line no-param-reassign
   // Encrypt password
-  user.passwordHash = yield encryptPassword(user.password);
-  delete user.password;
+  user.passwordHash = yield encryptPassword(user.password); // eslint-disable-line no-param-reassign
+  delete user.password; // eslint-disable-line no-param-reassign
   const newUser = yield User.create(user);
   newUser.accessToken = token;
   newUser.accessTokenExpiresAt = getExpiresDate(config.tokenExpiresIn);
@@ -73,8 +72,8 @@ register.schema = {
     mobile: Joi.string().allow(['']),
     gender: Joi.string().allow(['']),
     countryId: Joi.number().integer().min(1),
-    password: Joi.string().required()
-  }).required()
+    password: Joi.string().required(),
+  }).required(),
 };
 
 /**
@@ -84,12 +83,15 @@ register.schema = {
 function* login(credentials) {
   let filter;
 
+  const where = key => Sequelize.where(
+    Sequelize.fn('lower', Sequelize.col(key)),
+    Sequelize.fn('lower', credentials.email),
+  );
   if (/@/.test(credentials.email)) {
-    filter = { where: { email: credentials.email } };
+    filter = { where: where('email') };
   } else {
-    filter = { where: { username: credentials.email } };
+    filter = { where: where('username') };
   }
-
   const user = yield User.findOne(filter);
 
   if (!user) throw new UnauthorizedError('Invalid credentials!');
@@ -115,8 +117,8 @@ function* login(credentials) {
 login.schema = {
   credentials: Joi.object().keys({
     email: Joi.string().required(),
-    password: Joi.string().required()
-  }).required()
+    password: Joi.string().required(),
+  }).required(),
 };
 
 /**
@@ -136,8 +138,8 @@ function* initiateForgotPassword(body) {
 
 initiateForgotPassword.schema = {
   body: Joi.object().keys({
-    email: Joi.string().email().required()
-  }).required()
+    email: Joi.string().email().required(),
+  }).required(),
 };
 
 /**
@@ -163,8 +165,8 @@ changeForgotPassword.schema = {
   body: Joi.object().keys({
     email: Joi.string().email().required(),
     newPassword: Joi.string().required(),
-    forgotPasswordToken: Joi.string().required()
-  }).required()
+    forgotPasswordToken: Joi.string().required(),
+  }).required(),
 };
 
 /**
@@ -186,8 +188,8 @@ updatePassword.schema = {
   userId: Joi.number().integer().min(1).required(),
   body: Joi.object().keys({
     oldPassword: Joi.string().required(),
-    newPassword: Joi.string().required()
-  }).required()
+    newPassword: Joi.string().required(),
+  }).required(),
 };
 
 /**
@@ -195,7 +197,7 @@ updatePassword.schema = {
  * @param entity the token entity
  */
 function* verifyEmail(entity) {
-  const user = yield helper.ensureExists(User, {email: entity.email});
+  const user = yield helper.ensureExists(User, { email: entity.email });
 
   if (user.status === modelConstants.UserStatuses.Active) {
     throw new ValidationError('User already verified');
@@ -207,7 +209,7 @@ function* verifyEmail(entity) {
   } else {
     throw new ValidationError('Token error');
   }
-  return {message: `${entity.email} verify succeed`};
+  return { message: `${entity.email} verify succeed` };
 }
 
 module.exports = {
