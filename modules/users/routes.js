@@ -17,6 +17,11 @@ module.exports = {
       controller: 'UserController',
       method: 'search',
     },
+    post: {
+      auth: jwtAuth,
+      controller: 'UserController',
+      method: 'create',
+    },
   },
   '/users/:id': {
     get: {

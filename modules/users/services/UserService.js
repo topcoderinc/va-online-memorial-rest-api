@@ -11,9 +11,10 @@ const Joi = require('joi');
 const _ = require('lodash');
 const models = require('va-online-memorial-data-models');
 const logger = require('../../../common/logger');
-const { NotFoundError, ForbiddenError } = require('../../../common/errors');
+const { NotFoundError, ForbiddenError, ConflictError } = require('../../../common/errors');
 const helper = require('../../../common/helper');
 const securityHelper = require('../../security/helper');
+const { encryptPassword } = require('../../security/helper');
 
 /**
  * build db search query
@@ -94,35 +95,88 @@ getSingle.schema = {
   id: Joi.id()
 };
 
+
+function* checkUserNameAndEmail(body) {
+  // Check if email is already registered
+  if (body.email) {
+    const existing = yield models.User.findOne({where: {email: body.email}});
+    if (existing) throw new ConflictError(`Email: ${body.email} is already exist.`);
+  }
+
+  if (body.username) {
+    // Check if username is already registered
+    const existing = yield models.User.findOne({where: {username: body.username}});
+    if (existing) throw new ConflictError(`Username: ${body.username} is already exist.`);
+  }
+}
+
 /**
  * Update user
  * @param {Number} id - the user id
- * @param {object} body - the request body
+ * @param {object} entity - the request body
  * @param {object} currentUser - the current user
  */
-function* update(id, body, currentUser) {
-  const user = yield helper.ensureExists(models.User, { id });
-
+function* update(id, entity, currentUser) {
+  const user = yield helper.ensureExists(models.User, {id});
+  let body = _.clone(entity);
   // if current user is not admin, then he can only update himself, include role
   if (currentUser.role !== models.modelConstants.UserRoles.Admin) {
     if (id !== _.toNumber(currentUser.id)) {
       throw new ForbiddenError('You can not update other user.');
     }
+    body = _.omit(body, 'role');
+  }
+  if (user.username === body.username) {
+    body = _.omit(body, 'username');
+  }
+  if (user.email === body.email) {
+    body = _.omit(body, 'email');
   }
 
+  yield checkUserNameAndEmail(body);
+
+  if (body.password) {
+    body.passwordHash = yield encryptPassword(body.password);
+    delete body.password;
+  }
   _.assignIn(user, body);
   yield user.save();
   return yield getSingle(id);
 }
 
+/**
+ * create user
+ * @param {object} body - the request body
+ * @param {object} currentUser - the current user
+ */
+function* create(body, currentUser) {
+  if (currentUser.role !== models.modelConstants.UserRoles.Admin) {
+    throw new ForbiddenError('Only admin can create user.');
+  }
+
+  yield checkUserNameAndEmail(body);
+  let user = _.clone(body);
+  user.firstName = '';
+  user.lastName = '';
+  user.mobile = '';
+  user.gender = '';
+  user.status = models.modelConstants.UserStatuses.Active;
+  // Encrypt password
+  user.passwordHash = yield encryptPassword(user.password);
+  delete user.password;
+  user = yield models.User.create(user);
+  return yield getSingle(user.id);
+}
+
 update.schema = {
   id: Joi.id(),
-  body: Joi.object().keys({
+  entity: Joi.object().keys({
     username: Joi.string(),
     email: Joi.string().email(),
     firstName: Joi.string(),
     lastName: Joi.string(),
     mobile: Joi.string(),
+    password: Joi.string(),
     countryId: Joi.optionalId(),
     role: Joi.string(),
     status: Joi.string().valid(_.values(models.modelConstants.UserStatuses)),
@@ -228,6 +282,7 @@ module.exports = {
   search,
   getSingle,
   update,
+  create,
   getMe,
   deactivateMe,
   activateMe,

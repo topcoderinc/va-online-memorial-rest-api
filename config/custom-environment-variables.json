@@ -8,5 +8,16 @@
   "dbConfig": {
     "db_url": "DATABASE_URL"
   },
+  "email": {
+    "pool": "EMAIL_IS_POOL",
+    "host": "EMAIL_HOST",
+    "port": "EMAIL_PORT",
+    "secure": "EMAIL_IS_SECURE",
+    "auth": {
+      "user": "EMAIL_USER",
+      "pass": "EMAIL_PASS"
+    },
+    "debug": "EMAIL_IS_DEBUG"
+  },
   "appURL": "APP_URL"
 }

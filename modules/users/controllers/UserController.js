@@ -37,6 +37,16 @@ function* update(req, res) {
 }
 
 /**
+ * admin create user
+ * @param req the request
+ * @param res the response
+ */
+function* create(req, res) {
+  res.json(yield UserService.create(req.body, req.user));
+}
+
+
+/**
  * Get me
  * @param req the request
  * @param res the response
@@ -87,6 +97,7 @@ module.exports = {
   search,
   getSingle,
   update,
+  create,
   getMe,
   deactivateMe,
   activateMe,
