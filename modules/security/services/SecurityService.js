@@ -42,7 +42,7 @@ function* register(user) {
 
   // Generate token
   const token = uuid();
-  const link = `${config.appURL}/api/v1/verify-email?email=${user.email}&token=${token}`;
+  const link = `${config.appURL}api/v1/verify-email?email=${user.email}&token=${token}`;
   yield helper.sendEmail({
     to: user.email,
     subject: 'Verify Your Email',
