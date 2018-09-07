@@ -48,16 +48,19 @@ module.exports = (app) => {
             req.signature = `${def.controller}#${def.method}`;
             next();
           });
-          // authenticate by passport if exists auth in definition of routes.
-          if (def.auth && def.auth.includes(anonymous)) {
+
+          if (def.auth) {
+            const isSupportAnonymous = def.auth.includes(anonymous);
+            let newAuth = def.auth;
+            if (isSupportAnonymous) {
+              newAuth = _.filter(def.auth, auth => auth !== anonymous);
+            }
             actions.push((req, res, next) => {
-              passport.authenticate(def.auth, { session: false }, (err) => {
-                next(err);
-              })(req, res, next);
-            });
-          } else if (def.auth) {
-            actions.push((req, res, next) => {
-              passport.authenticate(def.auth, (err, user) => {
+              passport.authenticate(newAuth, (err, user) => {
+                if (!user && isSupportAnonymous) {
+                  next();
+                  return;
+                }
                 if (err || !user) {
                   next((err instanceof UnauthorizedError) ? err : new UnauthorizedError());
                 } else {
@@ -68,17 +71,19 @@ module.exports = (app) => {
               })(req, res, next);
             });
 
-            actions.push((req, res, next) => {
-              if (!req.user) {
-                next(new UnauthorizedError('Action is not allowed for anonymous!'));
-              }
-              if (Array.isArray(def.access) &&
-                (!req.user.role || _.indexOf(def.access, req.user.role) === -1)) {
-                next(new ForbiddenError('You are not allowed to perform this action!'));
-              } else {
-                next();
-              }
-            });
+            if (!isSupportAnonymous) {
+              actions.push((req, res, next) => {
+                if (!req.user) {
+                  next(new UnauthorizedError('Action is not allowed for anonymous!'));
+                }
+                if (Array.isArray(def.access) &&
+                  (!req.user.role || _.indexOf(def.access, req.user.role) === -1)) {
+                  next(new ForbiddenError('You are not allowed to perform this action!'));
+                } else {
+                  next();
+                }
+              });
+            }
           }
           if (def.file) {
             actions.push(upload.any());

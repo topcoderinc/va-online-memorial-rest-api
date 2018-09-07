@@ -13,9 +13,29 @@ const co = require('co');
 const config = require('config');
 const models = require('va-online-memorial-data-models');
 const logger = require('../../../common/logger');
-const { NotFoundError } = require('../../../common/errors');
+const { NotFoundError, BadRequestError } = require('../../../common/errors');
 const helper = require('../../../common/helper');
 const securityHelper = require('../../security/helper');
+const {
+  createNotificationByNokApproved,
+} = require('../../notifications/services/NotificationService');
+
+/**
+ * check a veteran has a Approved nok
+ * @param veteranId
+ * @return {IterableIterator<*>}
+ */
+function* checkHasNok(veteranId) {
+  const nok = yield models.NextOfKin.findOne({
+    where: {
+      veteranId,
+      status: models.modelConstants.Statuses.Approved,
+    },
+  });
+  if (nok) {
+    throw new BadRequestError('An approved NoK already exists for this veteran.');
+  }
+}
 
 /**
  * build db search query
@@ -79,7 +99,7 @@ search.schema = {
 function* create(files, body) {
   yield helper.ensureExists(models.User, { id: body.userId });
   yield helper.ensureExists(models.Veteran, { id: body.veteranId });
-
+  yield checkHasNok(body.veteranId);
   let theId;
   yield models.sequelize.transaction(t => co(function* () {
     // create proof files
@@ -99,7 +119,6 @@ function* create(files, body) {
     yield kin.setProofs(fileIds, { transaction: t });
     theId = kin.id;
   }));
-
   return yield getSingle(theId);
 }
 
@@ -239,14 +258,21 @@ remove.schema = {
  */
 function* approve(id, userId) {
   const kin = yield helper.ensureExists(models.NextOfKin, { id });
+  yield checkHasNok(kin.veteranId);
   kin.status = models.modelConstants.Statuses.Approved;
   kin.updatedBy = userId;
+  yield createNotificationByNokApproved({
+    userId: kin.userId,
+    veteranId: kin.veteranId,
+    createdBy: userId,
+    type: models.modelConstants.NotificationType.Nok,
+  }, 'Your NOK request approved');
   yield kin.save();
 }
 
 approve.schema = {
   id: Joi.id(),
-  userId: Joi.id()
+  userId: Joi.id(),
 };
 
 /**
@@ -256,10 +282,16 @@ approve.schema = {
  * @param {Number} userId - the current user id
  */
 function* reject(id, body, userId) {
-  const kin = yield helper.ensureExists(models.NextOfKin, { id });
+  const kin = yield helper.ensureExists(models.NextOfKin, {id});
   kin.status = models.modelConstants.Statuses.Rejected;
   kin.response = body.response;
   kin.updatedBy = userId;
+  yield createNotificationByNokApproved({
+    userId: kin.userId,
+    veteranId: kin.veteranId,
+    createdBy: userId,
+    type: models.modelConstants.NotificationType.Nok,
+  }, 'Your NOK request rejected by admin');
   yield kin.save();
 }
 

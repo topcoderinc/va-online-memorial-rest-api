@@ -231,7 +231,27 @@ activateMe.schema = {
  */
 function* getNotificationPreferences(id) {
   yield helper.ensureExists(models.User, { id });
-
+  const preference = yield models.NotificationPreference.findOne({where: {userId: id}});
+  if (!preference) {
+    yield models.NotificationPreference.create({
+      userId: id,
+      storyNotificationsSite: true,
+      storyNotificationsEmail: true,
+      storyNotificationsMobile: true,
+      badgeNotificationsSite: true,
+      badgeNotificationsEmail: true,
+      badgeNotificationsMobile: true,
+      testimonialNotificationsSite: true,
+      testimonialNotificationsEmail: true,
+      testimonialNotificationsMobile: true,
+      photoNotificationsSite: true,
+      photoNotificationsEmail: true,
+      photoNotificationsMobile: true,
+      eventNotificationsSite: true,
+      eventNotificationsEmail: true,
+      eventNotificationsMobile: true,
+    });
+  }
   return yield helper.ensureExists(models.NotificationPreference, { userId: id });
 }
 

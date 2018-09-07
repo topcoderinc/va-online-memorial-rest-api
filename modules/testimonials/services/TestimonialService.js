@@ -13,6 +13,10 @@ const models = require('va-online-memorial-data-models');
 const logger = require('../../../common/logger');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('../../../common/errors');
 const helper = require('../../../common/helper');
+const {
+  createNotificationByPostCreate,
+  createNotificationByPostApproved,
+} = require('../../notifications/services/NotificationService');
 
 /**
  * build db search query
@@ -84,6 +88,13 @@ function* create(body) {
   yield helper.ensureExists(models.Veteran, { id: body.veteranId });
 
   const testimonial = yield models.Testimonial.create(body);
+  yield createNotificationByPostCreate({
+    veteranId: body.veteranId,
+    createdBy: testimonial.createdBy,
+    type: models.modelConstants.NotificationType.Post,
+    userId: testimonial.createdBy,
+    subType: models.modelConstants.PostTypes.Testimonial,
+  });
   return yield getSingle(testimonial.id);
 }
 
@@ -174,6 +185,12 @@ function* approve(id, user) {
   }
   testimonial.status = models.modelConstants.Statuses.Approved;
   testimonial.updatedBy = user.id;
+  yield createNotificationByPostApproved({
+    veteranId: testimonial.veteranId,
+    createdBy: user.id,
+    type: models.modelConstants.NotificationType.Post,
+    subType: models.modelConstants.PostTypes.Testimonial,
+  });
   yield testimonial.save();
 }
 
