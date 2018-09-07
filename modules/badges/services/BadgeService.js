@@ -86,14 +86,12 @@ search.schema = {
 function* create(body) {
   yield helper.ensureExists(models.Veteran, { id: body.veteranId });
   yield helper.ensureExists(models.BadgeType, { id: body.badgeTypeId });
-
   const badge = yield models.Badge.create(body);
   yield createNotificationByPostCreate({
     veteranId: body.veteranId,
     createdBy: badge.createdBy,
     type: models.modelConstants.NotificationType.Post,
     subType: models.modelConstants.PostTypes.Badge,
-    userId: badge.createdBy,
   });
   return yield getSingle(badge.id);
 }

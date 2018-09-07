@@ -92,7 +92,6 @@ function* create(body) {
     veteranId: body.veteranId,
     createdBy: testimonial.createdBy,
     type: models.modelConstants.NotificationType.Post,
-    userId: testimonial.createdBy,
     subType: models.modelConstants.PostTypes.Testimonial,
   });
   return yield getSingle(testimonial.id);
