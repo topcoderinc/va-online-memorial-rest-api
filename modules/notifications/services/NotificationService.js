@@ -9,7 +9,6 @@ const logger = require('../../../common/logger');
 const models = require('va-online-memorial-data-models');
 const _ = require('lodash');
 const Joi = require('joi');
-const { BadRequestError } = require('../../../common/errors');
 const helper = require('../../../common/helper');
 
 /**
@@ -72,10 +71,12 @@ function* markAsRead(entity) {
   if (!ids || ids.length <= 0) {
     return;
   }
-  yield models.Notification.update(
-    { status: models.modelConstants.NotificationStatus.Read },
-    { where: { id: { $in: ids } } },
-  );
+  for (let i = 0; i < ids.length; i += 1) {
+    yield models.Notification.update(
+      { status: models.modelConstants.NotificationStatus.Read },
+      { where: { id: ids[i] } },
+    );
+  }
 }
 
 markAsRead.schema = {
