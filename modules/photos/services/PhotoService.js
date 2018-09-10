@@ -16,6 +16,11 @@ const logger = require('../../../common/logger');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('../../../common/errors');
 const helper = require('../../../common/helper');
 const s3Client = require('../../../lib/s3');
+const {
+  createNotificationByPostCreate,
+  createNotificationByPostApproved,
+} = require('../../notifications/services/NotificationService');
+
 /**
  * build db search query
  * @param filter the search filter
@@ -99,6 +104,13 @@ function* create(files, body) {
     const photo = yield models.Photo.create(body, { transaction: t });
     theId = photo.id;
   }));
+
+  yield createNotificationByPostCreate({
+    veteranId: body.veteranId,
+    createdBy: body.createdBy,
+    type: models.modelConstants.NotificationType.Post,
+    subType: models.modelConstants.PostTypes.Photo,
+  });
 
   return yield getSingle(theId);
 }
@@ -220,6 +232,13 @@ function* approve(id, user) {
   }
   photo.status = models.modelConstants.Statuses.Approved;
   photo.updatedBy = user.id;
+  yield createNotificationByPostApproved({
+    veteranId: photo.veteranId,
+    createdBy: user.id,
+    userId: photo.createdBy,
+    type: models.modelConstants.NotificationType.Post,
+    subType: models.modelConstants.PostTypes.Photo,
+  });
   yield photo.save();
 }
 

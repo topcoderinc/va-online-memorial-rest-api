@@ -13,7 +13,10 @@ const models = require('va-online-memorial-data-models');
 const logger = require('../../../common/logger');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('../../../common/errors');
 const helper = require('../../../common/helper');
-
+const {
+  createNotificationByPostCreate,
+  createNotificationByPostApproved,
+} = require('../../notifications/services/NotificationService');
 /**
  * build db search query
  * @param filter the search filter
@@ -57,12 +60,11 @@ function* search(query, user) {
     if (!user) {
       throw new BadRequestError('User must be logged in to make this query.');
     }
-
-    const nextOfKins = yield models.NextOfKin.find({
+    const nextOfKins = yield models.NextOfKin.findAll({
       where: {
         userId: user.id,
-        status: models.modelConstants.Statuses.Approved
-      }
+        status: models.modelConstants.Statuses.Approved,
+      },
     });
     q.where.veteranId = { $in: _.map(nextOfKins, item => item.veteranId) };
   }
@@ -97,6 +99,12 @@ function* create(body) {
   yield helper.ensureExists(models.Veteran, { id: body.veteranId });
 
   const story = yield models.Story.create(body);
+  yield createNotificationByPostCreate({
+    veteranId: body.veteranId,
+    createdBy: story.createdBy,
+    type: models.modelConstants.NotificationType.Post,
+    subType: models.modelConstants.PostTypes.Story,
+  });
   return yield getSingle(story.id);
 }
 
@@ -187,6 +195,13 @@ function* approve(id, user) {
   }
   story.status = models.modelConstants.Statuses.Approved;
   story.updatedBy = user.id;
+  yield createNotificationByPostApproved({
+    veteranId: story.veteranId,
+    createdBy: user.id,
+    userId: story.createdBy,
+    type: models.modelConstants.NotificationType.Post,
+    subType: models.modelConstants.PostTypes.Story,
+  });
   yield story.save();
 }
 
